@@ -1,0 +1,17 @@
+function! RunCMake()
+  execute 'terminal'
+  call feedkeys("cd ./build/Debug\<CR>")
+  call feedkeys("cmake -DCMAKE_BUILD_TYPE=Debug ../..\<CR>")
+  call feedkeys("cmake --build .\<CR>")
+  "call feedkeys("exit\<CR>")
+endfunction
+
+function! RunProgram()
+    execute 'terminal'
+    resize +20
+    call feedkeys("./bin/Debug/player\<CR>")
+endfunction
+
+nnoremap <F5> :call RunCMake()<CR>
+nnoremap <F6> :call RunProgram()<CR>
+
