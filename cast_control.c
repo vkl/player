@@ -9,7 +9,6 @@
 
 #include "cast_message.h"
 #include "cast_control.h"
-#include "messages.h"
 
 enum CastMessageType
 processData(struct MessageQueueItem **msgQueueItem,
@@ -34,10 +33,11 @@ processData(struct MessageQueueItem **msgQueueItem,
     type = cJSON_GetObjectItemCaseSensitive(payload, "type");
     
     if (strcmp(type->valuestring, "PING") == 0) {
-        queueMessage(msgQueueItem, PONG, NULL, NONE);
         retval = PING;
+        queueMessage(msgQueueItem, PONG, NULL, NONE);
 
     } else if (strcmp(type->valuestring, "RECEIVER_STATUS") == 0) {
+        retval = RECEIVER_STATUS;
         cJSON *status = cJSON_GetObjectItemCaseSensitive(payload, "status");
         cJSON *apps = cJSON_GetObjectItemCaseSensitive(status, "applications");
         cJSON *volume = cJSON_GetObjectItemCaseSensitive(status, "volume");
@@ -46,21 +46,12 @@ processData(struct MessageQueueItem **msgQueueItem,
         cJSON *app = cJSON_GetArrayItem(apps, 0);
         cJSON *sessionId = cJSON_GetObjectItem(app, "sessionId");
         if (sessionId != NULL) {
-            if (strcmp(cs->receiverId, sessionId->valuestring) == 0) {
-                goto done;
-            }
-            strcpy(cs->receiverId, sessionId->valuestring);
-    		//queueMessage(msgQueueItem, CONNECT, NULL);
-    		//queueMessage(msgQueueItem, GET_STATUS, NULL);
-		// launch if receiver status was requested by player
-        } else if (strcmp(cast_msg->destination_id, "*") != 0) {
-            //sendMessage(msgItem, cs, LAUNCH, NULL);
-            //sendMessage(msgItem, cs, GET_STATUS, NULL);
-            //sendMessage(msgItem, cs, GET_MEDIA_STATUS, NULL);
+            if (strcmp(cs->receiverId, sessionId->valuestring) != 0)
+                strcpy(cs->receiverId, sessionId->valuestring);
         }
-        retval = RECEIVER_STATUS;
 
     } else if (strcmp(type->valuestring, "MEDIA_STATUS") == 0) {
+        retval = MEDIA_STATUS;
         cJSON *status = cJSON_GetObjectItemCaseSensitive(payload, "status");
         cJSON *stat = cJSON_GetArrayItem(status, 0);
         if (stat == NULL) {
@@ -82,18 +73,12 @@ processData(struct MessageQueueItem **msgQueueItem,
 
         if (mediaSessionId->valueint != cs->mediaStatus.mediaSessionId) {
             cs->mediaStatus.mediaSessionId = mediaSessionId->valueint;
-            //if ((*msgQueueItem)->data->size > 1) {
-            //    queueMessage(msgQueueItem, QUEUE_INSERT, (*msgQueueItem)->data);
-            //}
-            //if (msgQueueItem-)
-            //queueMessage(msgQueueItem, QUEUE_INSERT, NULL);
         }
-        retval = MEDIA_STATUS;
-	} else if (strcmp(type->valuestring, "CLOSE") == 0) {
-		strcpy(cs->receiverId, DEFAULT_DESTINATION_ID);
-		cs->requestId = 1;
+    } else if (strcmp(type->valuestring, "CLOSE") == 0) {
         retval = CLOSE;
-	}
+        strcpy(cs->receiverId, DEFAULT_DESTINATION_ID);
+        cs->requestId = 1;
+    }
 
 done:
     api__cast_message__free_unpacked(cast_msg, NULL);     
@@ -160,7 +145,7 @@ sendMessage(struct MessageQueueItem **msgQueueItem, struct MessageItem **msgItem
         sprintf(cast_msg.payload_utf8, LAUNCH_PAYLOAD, cs->requestId, cs->appId);
         cs->requestId++;
         break;
-	case CLOSE:
+    case CLOSE:
         cast_msg.namespace_ = CONNECTION_NS;
         cast_msg.destination_id = cs->receiverId;
         cast_msg.payload_utf8 = strdup(CLOSE_PAYLOAD);
@@ -231,9 +216,9 @@ sendMessage(struct MessageQueueItem **msgQueueItem, struct MessageItem **msgItem
         cast_msg.destination_id = DEFAULT_DESTINATION_ID;
         cast_msg.payload_utf8 = malloc(n+1);
         sprintf(cast_msg.payload_utf8, SET_VOLUME_PAYLOAD, cs->requestId,
-			(float)(cs->mediaStatus.volume.level));
+            (float)(cs->mediaStatus.volume.level));
         cs->requestId++;
-		break;
+        break;
     case QUEUE_NEXT:
         cast_msg.namespace_ = MEDIA_NS;
         n = snprintf(NULL, 0, QUEUE_NEXT_PAYLOAD, cs->requestId,

@@ -15,22 +15,27 @@
 #include <openssl/err.h>
 
 #include "cast_control.h"
-#include "cast_message.h"
 
 #include "tls.h"
 #include "cli.h"
 
 #include "media.h"
 
-#define hostname "192.168.1.106"
-#define port "8009"
-
 int efd;
 
 static void loadMedia(struct MessageData *data, char **media, uint16_t size); 
 static void freeMedia(struct MessageData *data); 
 
-int main() {
+int main(int argc, char *argv[]) {
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <hostname> <port>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+    
+    const char *hostname = argv[1];
+    const char *port = argv[2];
+
     SSL_CTX *ctx = NULL;
     SSL *ssl = NULL;
     BIO *bio = NULL;
@@ -41,11 +46,10 @@ int main() {
     pthread_t interactive_id = 0;
     struct MessageItem *msgItem = NULL;
     struct MessageQueueItem *msgQueueItem = NULL;
-	char *media = NULL;
+    char *media = NULL;
     struct MessageData data1, data2;
     loadMedia(&data1, media1, 1);
     loadMedia(&data2, media3, 3);
-    pthread_create(&interactive_id, NULL, interactive, NULL);
     
     ctx = SSL_CTX_new(TLS_client_method());
     if (ctx == NULL) {
@@ -95,6 +99,8 @@ int main() {
         goto end; /* Cannot retry: error */
     }
 
+    pthread_create(&interactive_id, NULL, interactive, NULL);
+    
     size_t written;
 
     uint8_t buf[4096];
@@ -178,52 +184,52 @@ int main() {
                 case (char)'q':
                     goto end;
                     break;
-				case (char)'x':
-					queueMessage(&msgQueueItem, CLOSE, NULL, NONE);
-					queueMessage(&msgQueueItem, GET_STATUS, NULL, NONE);
-					break;
-                case (char)'c':
-    				queueMessage(&msgQueueItem, CONNECT, NULL, NONE);
-    				queueMessage(&msgQueueItem, LAUNCH, NULL, RECEIVER_STATUS);
-    		        queueMessage(&msgQueueItem, CONNECT, NULL, NONE);
-    		        //queueMessage(&msgQueueItem, GET_STATUS, NULL, RECEIVER_STATUS);
-    		        queueMessage(&msgQueueItem, GET_MEDIA_STATUS, NULL, NONE);
+                case (char)'x':
+                    queueMessage(&msgQueueItem, CLOSE, NULL, NONE);
+                    queueMessage(&msgQueueItem, GET_STATUS, NULL, NONE);
                     break;
-				case (char)'1':
-					queueMessage(&msgQueueItem, LOAD, &data1, NONE);
-					break;
+                case (char)'c':
+                    queueMessage(&msgQueueItem, CONNECT, NULL, NONE);
+                    queueMessage(&msgQueueItem, LAUNCH, NULL, RECEIVER_STATUS);
+                    queueMessage(&msgQueueItem, CONNECT, NULL, NONE);
+                    //queueMessage(&msgQueueItem, GET_STATUS, NULL, RECEIVER_STATUS);
+                    queueMessage(&msgQueueItem, GET_MEDIA_STATUS, NULL, NONE);
+                    break;
+                case (char)'1':
+                    queueMessage(&msgQueueItem, LOAD, &data1, NONE);
+                    break;
                 case (char)'2':
                     queueMessage(&msgQueueItem, LOAD, &data2, MEDIA_STATUS);
                     if (data2.size > 1) {
                         queueMessage(&msgQueueItem, QUEUE_INSERT, &data2, NONE);
                     }
                     break;
-				case (char)'s':
-					queueMessage(&msgQueueItem, STOP, NULL, NONE);
-					break;
-				case (char)'i':
-					queueMessage(&msgQueueItem, QUEUE_NEXT, NULL, NONE);
-					break;
-				case (char)'o':
-					queueMessage(&msgQueueItem, QUEUE_PREV, NULL, NONE);
-					break;
-				case (char)'p':
-					if (cs.mediaStatus.playerState == PLAYING)
-						queueMessage(&msgQueueItem, PAUSE, NULL, NONE);
-					else if (cs.mediaStatus.playerState == PAUSED)
-						queueMessage(&msgQueueItem, PLAY, NULL, NONE);
-					break;
-				case (char)'m':
-					queueMessage(&msgQueueItem, GET_MEDIA_STATUS, NULL, NONE);
-					break;
-				case (char)'+':
+                case (char)'s':
+                    queueMessage(&msgQueueItem, STOP, NULL, NONE);
+                    break;
+                case (char)'i':
+                    queueMessage(&msgQueueItem, QUEUE_NEXT, NULL, NONE);
+                    break;
+                case (char)'o':
+                    queueMessage(&msgQueueItem, QUEUE_PREV, NULL, NONE);
+                    break;
+                case (char)'p':
+                    if (cs.mediaStatus.playerState == PLAYING)
+                        queueMessage(&msgQueueItem, PAUSE, NULL, NONE);
+                    else if (cs.mediaStatus.playerState == PAUSED)
+                        queueMessage(&msgQueueItem, PLAY, NULL, NONE);
+                    break;
+                case (char)'m':
+                    queueMessage(&msgQueueItem, GET_MEDIA_STATUS, NULL, NONE);
+                    break;
+                case (char)'+':
                     cs.mediaStatus.volume.level += 0.05;
-					queueMessage(&msgQueueItem, SET_VOLUME, NULL, NONE);
-					break;
-				case (char)'-':
+                    queueMessage(&msgQueueItem, SET_VOLUME, NULL, NONE);
+                    break;
+                case (char)'-':
                     cs.mediaStatus.volume.level -= 0.05;
-					queueMessage(&msgQueueItem, SET_VOLUME, NULL, NONE);
-					break;
+                    queueMessage(&msgQueueItem, SET_VOLUME, NULL, NONE);
+                    break;
             }
         }
 

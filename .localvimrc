@@ -9,7 +9,7 @@ endfunction
 function! RunProgram()
     execute 'terminal'
     resize +20
-    call feedkeys("./bin/Debug/player\<CR>")
+    call feedkeys("./bin/Debug/player 192.168.1.106 8009\<CR>")
 endfunction
 
 nnoremap <F5> :call RunCMake()<CR>

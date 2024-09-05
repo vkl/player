@@ -1,79 +1,38 @@
 #ifndef _CAST_MESSAGE_H
 #define _CAST_MESSAGE_H
 
-#define HEARTBEAT_NS           "urn:x-cast:com.google.cast.tp.heartbeat"
-#define CONNECTION_NS          "urn:x-cast:com.google.cast.tp.connection"
-#define RECEIVER_NS            "urn:x-cast:com.google.cast.receiver"
-#define MEDIA_NS               "urn:x-cast:com.google.cast.media"
+#define PING_PAYLOAD "{\"type\":\"PING\"}"
 
-#define DEFAULT_SOURCE_ID      "sender-0"
-#define DEFAULT_DESTINATION_ID "receiver-0"
+#define PONG_PAYLOAD "{\"type\":\"PONG\"}"
 
-#define APPBACKDROP            "E8C28D3C"
-#define APPMEDIA               "CC1AD845"
-#define APPURL                 "5CB45E5A"
-#define APPYOUTUBEMUSIC        "2DB7CC49"
-#define APPYOUTUBE             "233637DE"
+#define GET_STATUS_PAYLOAD "{\"type\":\"GET_STATUS\",\"requestId\":%d}"
 
-#include <stdbool.h> 
+#define CONNECT_PAYLOAD "{\"type\":\"CONNECT\"}"
 
-enum CastMessageType {
-    NONE,
-    PING,
-    PONG,
-    CONNECT,
-    CLOSE,
-    GET_STATUS,
-    RECEIVER_STATUS,
-    LAUNCH,
-    MEDIA_STATUS,
-    GET_MEDIA_STATUS,
-    LOAD,
-    QUEUE_INSERT,
-    QUEUE_NEXT,
-    QUEUE_PREV,
-	PLAY,
-	PAUSE,
-    STOP,
-    SET_VOLUME
-};
+#define CLOSE_PAYLOAD "{\"type\":\"CLOSE\"}"
 
-#define TYPE_TO_STR(type) \
-    ((type) == NONE ? "NONE" : \
-    (type) == PING ? "PING" : \
-    (type) == PONG ? "PONG" : \
-    (type) == CONNECT ? "CONNECT" : \
-    (type) == CLOSE ? "CLOSE" : \
-    (type) == GET_STATUS ? "GET_STATUS" : \
-    (type) == RECEIVER_STATUS ? "RECEIVER_STATUS" : \
-    (type) == LAUNCH ? "LAUNCH" : \
-    (type) == MEDIA_STATUS ? "MEDIA_STATUS" : \
-    (type) == GET_MEDIA_STATUS ? "GET_MEDIA_STATUS" : \
-    (type) == LOAD ? "LOAD" : \
-    (type) == QUEUE_INSERT ? "QUEUE_INSERT" : \
-    (type) == QUEUE_NEXT ? "QUEUE_NEXT" : \
-    (type) == QUEUE_PREV ? "QUEUE_PREV" : \
-    (type) == PLAY ? "PLAY" : \
-    (type) == PAUSE ? "PAUSE" : \
-    (type) == STOP ? "STOP" : \
-    (type) == SET_VOLUME ? "SET_VOLUME" : "UNKNOWN_TYPE")
+#define RECEIVER_STATUS_PAYLOAD "{\"type\":\"RECEIVER_STATUS\",\"requestId\":%d}"
 
-enum PlayerState {
-    IDLE,
-    BUFFERING,
-    PAUSED,
-    PLAYING
-};
+#define LAUNCH_PAYLOAD "{\"type\":\"LAUNCH\",\"requestId\":%d,\"appId\":\"%s\"}"
 
-struct Volume {
-    float level;
-    bool muted;
-};
+#define MEDIA_STATUS_PAYLOAD "{\"type\":\"GET_STATUS\",\"requestId\":%d,\"mediaSessionId\":%d}"
 
-struct MediaStatus {
-    int mediaSessionId;
-    enum PlayerState playerState;
-    struct Volume volume;
-};
+#define LOAD_PAYLOAD "{\"type\":\"LOAD\",\"requestId\":%d,\"media\":%s}"
+
+#define QUEUE_INSERT_PAYLOAD "{\"type\":\"QUEUE_INSERT\",\"requestId\":%d,\"items\":[%s],\"mediaSessionId\":%d,\"currentTime\":%d,\"autoPlay\":%s}"
+
+#define QUEUE_NEXT_PAYLOAD "{\"type\":\"QUEUE_NEXT\",\"requestId\":%d,\"mediaSessionId\":%d}"
+
+#define QUEUE_PREV_PAYLOAD "{\"type\":\"QUEUE_PREV\",\"requestId\":%d,\"mediaSessionId\":%d}"
+
+#define STOP_PAYLOAD "{\"type\":\"STOP\",\"requestId\":%d,\"mediaSessionId\":%d}"
+
+#define PAUSE_PAYLOAD "{\"type\":\"PAUSE\",\"requestId\":%d,\"mediaSessionId\":%d}"
+
+#define PLAY_PAYLOAD "{\"type\":\"PLAY\",\"requestId\":%d,\"mediaSessionId\":%d}"
+
+#define MEDIA_ITEM "{\"media\":%s,\"autoPlay\":%s,\"startTime\":%d,\"preloadTime\":%d}"
+
+#define SET_VOLUME_PAYLOAD "{\"type\":\"SET_VOLUME\",\"requestId\":%d,\"volume\":{\"level\":%f,\"muted\":false}}"
 
 #endif
